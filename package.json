@@ -2,26 +2,36 @@
   "name": "chat-app",
   "version": "0.1.0",
   "private": true,
+  "main": "dist/main.js",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "tsc": "tsc",
+    "electron-build": "tsc src/main.ts src/preload.ts --outDir dist",
+    "electron-dev": "npm run electron-build && cross-env NODE_ENV=development concurrently \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron": "npm run electron-build && electron ."
   },
   "dependencies": {
+    "next": "15.4.1",
     "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "next": "15.4.1"
+    "react-dom": "19.1.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
+    "concurrently": "^9.2.0",
+    "cross-env": "^7.0.3",
+    "electron": "^37.2.2",
+    "electron-builder": "^24.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.4.1",
-    "@eslint/eslintrc": "^3"
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "wait-on": "^8.0.3"
   }
 }
