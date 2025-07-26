@@ -3,6 +3,11 @@ import * as path from 'path';
 import { join } from 'path';
 
 function createWindow() {
+  // 운영체제별 아이콘 설정
+  const iconPath = process.platform === 'darwin'
+    ? path.join(process.cwd(), 'public/icons/mac.png')  // macOS
+    : path.join(process.cwd(), 'public/icons/window.png'); // Windows
+
   const win = new BrowserWindow({
     width: 400,
     height: 600,
@@ -11,14 +16,18 @@ function createWindow() {
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
     },
+    icon: iconPath,
     frame: true,
     resizable: true,
     transparent: false,
     alwaysOnTop: false
   });
 
-  // 개발 모드에서는 localhost:3000을 로드하고
-  // 프로덕션 모드에서는 빌드된 파일을 로드합니다
+  // macOS dock 아이콘 설정
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.setIcon(path.join(process.cwd(), 'public/icons/mac.png'));
+  }
+
   const url = process.env.NODE_ENV === 'development' 
     ? 'http://localhost:3000' 
     : `file://${path.join(__dirname, '../out/index.html')}`;
