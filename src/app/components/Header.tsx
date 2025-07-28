@@ -15,8 +15,8 @@ export default function Header() {
     setIsLoggedIn(!!userId);
   }, []);
 
-  // 홈페이지에서는 헤더 자체를 숨김
-  if (pathname === '/') {
+  // 홈페이지와 채팅 페이지에서는 헤더 숨김
+  if (pathname === '/' || pathname === '/chat') {
     return null;
   }
 

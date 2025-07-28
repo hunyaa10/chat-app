@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';  // useRef 추가
 import Image from 'next/image';
 import { botImageMap, type BotId } from '@/config/botImages';
 
@@ -17,9 +17,20 @@ export default function Chat() {
   const searchParams = useSearchParams();
   const botId = searchParams.get('bot') as BotId;
   const botName = searchParams.get('name');
+  const messagesEndRef = useRef<HTMLDivElement>(null);  // 스크롤을 위한 ref 추가
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
+
+  // 스크롤을 맨 아래로 이동시키는 함수
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // 메시지가 추가될 때마다 스크롤 이동
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     if (!botId || !botName) {
@@ -64,15 +75,29 @@ export default function Chat() {
   };
 
   return (
-    <div className="min-h-screen bg-custom-gray-light p-4">
-      <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg">
+    <div className="h-screen flex flex-col bg-custom-gray-light">
+      <div className="h-full max-w-3xl mx-auto w-full bg-white flex flex-col">
         {/* 헤더 */}
-        <div className="flex items-center p-4 border-b">
-          <button 
-            onClick={() => router.push('/')}
-            className="mr-4 px-3 py-1 bg-custom-gray-dark text-white rounded hover:bg-custom-gray-light hover:text-black transition-colors"
+        <div className="flex items-center px-2 py-4 border-b bg-white">
+          <button
+            onClick={() => router.back()}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors mr-2"
+            aria-label="뒤로 가기"
           >
-            ←
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
           </button>
           <Image
             src={botImageMap[botId]}
@@ -85,7 +110,7 @@ export default function Chat() {
         </div>
 
         {/* 채팅 영역 */}
-        <div className="h-[500px] overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -102,10 +127,12 @@ export default function Chat() {
               </div>
             </div>
           ))}
+          {/* 스크롤을 위한 더미 div */}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* 입력 영역 */}
-        <div className="border-t p-4">
+        <div className="border-t p-4 bg-white">
           <div className="flex">
             <input
               type="text"
