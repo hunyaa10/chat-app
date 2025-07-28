@@ -10,7 +10,7 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);  // 추가
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +35,7 @@ export default function Home() {
       // 로그인 성공 시 사용자 ID를 로컬 스토리지에 저장
       localStorage.setItem('userId', user.id);
       
-      router.push('/mypage');
+      router.replace('/mypage');
       
     } catch (err) {
       setError(err instanceof Error ? err.message : '로그인에 실패했습니다.');
@@ -47,9 +47,9 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-custom-gray-light p-4 pt-8">
       <div className="max-w-md mx-auto">
-        <h1 className="text-2xl font-bold text-center mb-2">Free Chat Bot</h1>
-        <p className="text-center text-gray-600 mb-8">나만의 AI 챗봇을 만들어보세요</p>
-        <div className="bg-white p-6 rounded-2xl shadow-lg">
+        <h1 className="text-2xl font-bold text-center mb-2">Chatress</h1>
+        <p className="text-center text-gray-600 mb-8">나만의 스트레스 챗봇을 만들어보세요</p>
+        <div className="bg-white p-4 rounded-2xl shadow-lg">
           <form onSubmit={handleLogin} className="space-y-6">
             {error && (
               <div className="text-red-500 text-sm text-center">

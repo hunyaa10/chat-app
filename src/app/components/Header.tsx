@@ -3,6 +3,7 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/superbase';
 
 export default function Header() {
   const router = useRouter();
@@ -10,37 +11,55 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // 로그인 상태 확인 함수
-  const checkLoginStatus = () => {
+  const checkLoginStatus = async () => {
     const userId = localStorage.getItem('userId');
-    setIsLoggedIn(!!userId);
-    // 로그인이 필요한 페이지에서 로그인 상태가 아니면 홈으로 리다이렉트
-    if (!userId && (pathname === '/mypage' || pathname === '/create')) {
-      router.push('/');
+    
+    if (!userId) {
+      setIsLoggedIn(false);
+      if (pathname === '/mypage' || pathname === '/create') {
+        router.push('/');
+      }
+      return;
+    }
+
+    try {
+      // users 테이블에서 해당 ID가 실제로 존재하는지 확인
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', userId)
+        .single();
+
+      if (error || !user) {
+        // 사용자가 존재하지 않으면 로그아웃 처리
+        localStorage.removeItem('userId');
+        setIsLoggedIn(false);
+        if (pathname === '/mypage' || pathname === '/create') {
+          router.push('/');
+        }
+        return;
+      }
+
+      setIsLoggedIn(true);
+    } catch (err) {
+      console.error('사용자 확인 중 오류 발생:', err);
+      setIsLoggedIn(false);
     }
   };
 
   useEffect(() => {
-    // 컴포넌트 마운트 시 로그인 상태 확인
     checkLoginStatus();
 
-    // 로컬 스토리지 변경 이벤트 리스너 추가
     const handleStorageChange = () => {
       checkLoginStatus();
     };
 
     window.addEventListener('storage', handleStorageChange);
-    
-    // 페이지 포커스될 때마다 로그인 상태 확인
-    const handleFocus = () => {
-      checkLoginStatus();
-    };
-    
-    window.addEventListener('focus', handleFocus);
+    window.addEventListener('focus', checkLoginStatus);
 
-    // 클린업 함수
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('focus', checkLoginStatus);
     };
   }, [pathname, router]);
 
@@ -75,12 +94,11 @@ export default function Header() {
   };
 
   // 로그아웃 핸들러
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
       localStorage.removeItem('userId');
       setIsLoggedIn(false);
-      router.push('/');
-      console.log('로그아웃 성공');
+      router.replace('/');
     } catch (error) {
       console.error('로그아웃 중 오류 발생:', error);
     }

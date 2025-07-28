@@ -1,6 +1,5 @@
 import { app, BrowserWindow } from 'electron';
 import * as path from 'path';
-import { join } from 'path';
 
 function createWindow() {
   // 운영체제별 아이콘 설정
@@ -10,7 +9,7 @@ function createWindow() {
 
   const win = new BrowserWindow({
     width: 400,
-    height: 600,
+    height: 700,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
