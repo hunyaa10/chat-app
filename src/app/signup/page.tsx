@@ -57,10 +57,8 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-custom-gray-light">
-      <div className="max-w-md mx-auto p-4">
-        <h1 className="text-2xl font-bold text-center mb-8">회원가입</h1>
-        
+    <div className="min-h-screen bg-custom-gray-light pt-20">
+      <div className="max-w-md mx-auto p-4">        
         <div className="bg-white p-4 rounded-2xl shadow-lg">
           <form onSubmit={handleSignUp} className="space-y-6">
             {error && (

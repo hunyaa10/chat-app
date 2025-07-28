@@ -4,8 +4,8 @@ import Header from "@/app/components/Header";
 import { usePathname } from 'next/navigation';
 
 export const metadata: Metadata = {
-  title: "Chat Application",
-  description: "Real-time chat application built with Next.js",
+  title: "Chatress",
+  description: "나만의 스트레스 챗봇을 만들어보세요",
   icons: {
     icon: '/favicon.ico',
   },
