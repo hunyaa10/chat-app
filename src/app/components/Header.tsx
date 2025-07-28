@@ -9,11 +9,40 @@ export default function Header() {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  useEffect(() => {
-    // 로그인 상태 확인
+  // 로그인 상태 확인 함수
+  const checkLoginStatus = () => {
     const userId = localStorage.getItem('userId');
     setIsLoggedIn(!!userId);
-  }, []);
+    // 로그인이 필요한 페이지에서 로그인 상태가 아니면 홈으로 리다이렉트
+    if (!userId && (pathname === '/mypage' || pathname === '/create')) {
+      router.push('/');
+    }
+  };
+
+  useEffect(() => {
+    // 컴포넌트 마운트 시 로그인 상태 확인
+    checkLoginStatus();
+
+    // 로컬 스토리지 변경 이벤트 리스너 추가
+    const handleStorageChange = () => {
+      checkLoginStatus();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // 페이지 포커스될 때마다 로그인 상태 확인
+    const handleFocus = () => {
+      checkLoginStatus();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+
+    // 클린업 함수
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [pathname, router]);
 
   // 홈페이지와 채팅 페이지에서는 헤더 숨김
   if (pathname === '/' || pathname === '/chat') {
@@ -45,31 +74,66 @@ export default function Header() {
     }
   };
 
+  // 로그아웃 핸들러
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('userId');
+      setIsLoggedIn(false);
+      router.push('/');
+      console.log('로그아웃 성공');
+    } catch (error) {
+      console.error('로그아웃 중 오류 발생:', error);
+    }
+  };
+
   return (
     <header className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
       <div className="max-w-7xl mx-auto px-2 h-14">
         <div className="h-full flex items-center justify-between">
-          {/* 왼쪽 - 뒤로가기 버튼 */}
-          <button
-            onClick={() => router.back()}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            aria-label="뒤로 가기"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          {/* 왼쪽 - 마이페이지에서는 로그아웃, 다른 페이지에서는 뒤로가기 */}
+          {pathname === '/mypage' && isLoggedIn ? (
+            <button
+              onClick={handleLogout}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="로그아웃"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-6 w-6" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" 
+                />
+              </svg>
+            </button>
+          ) : (
+            <button
+              onClick={() => router.back()}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="뒤로 가기"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+          )}
 
           {/* 중앙 - 페이지 제목 */}
           <h1 className="text-lg font-bold absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
