@@ -1,107 +1,75 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { useState } from 'react';
-import { botImages } from '@/config/botImages';
 
 export default function SignUp() {
   const router = useRouter();
-  const [selectedBot, setSelectedBot] = useState('');
-  const [botName, setBotName] = useState('');
-  const [email, setEmail] = useState('');
+  const [id, setId] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleCreateCharacter = () => {
-    if (selectedBot && botName.trim() && email && password) {
-      // TODO: 회원가입 및 캐릭터 생성 로직 구현
-      router.push('/mypage');
-    }
+  const handleSignUp = (e: React.FormEvent) => {
+    e.preventDefault();
+    // TODO: 회원가입 로직 구현
+    router.push('/'); // 회원가입 성공 시 홈으로 이동
   };
 
   return (
     <div className="min-h-screen bg-custom-gray-light">
-      <div className="max-w-2xl mx-auto p-10">
+      <div className="max-w-md mx-auto p-4">
         <h1 className="text-2xl font-bold text-center mb-8">회원가입</h1>
         
-        {/* 회원가입 폼 */}
-        <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
-          <div className="space-y-4">
+        <div className="bg-white p-4 rounded-2xl shadow-lg">
+          <form onSubmit={handleSignUp} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">이메일</label>
+              <label htmlFor="id" className="block text-sm font-medium text-gray-700 mb-1">
+                아이디
+              </label>
               <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                type="text"
+                id="id"
+                value={id}
+                onChange={(e) => setId(e.target.value)}
+                className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm 
+                focus:outline-none focus:ring-2 focus:ring-custom-green-dark focus:border-transparent
+                transition-all duration-200"
+                placeholder="아이디를 입력하세요"
+                minLength={4}
+                maxLength={20}
+                pattern="^[a-zA-Z0-9]+$"
+                title="영문과 숫자만 사용 가능합니다"
                 required
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">비밀번호</label>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                비밀번호
+              </label>
               <input
                 type="password"
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm 
+                focus:outline-none focus:ring-2 focus:ring-custom-green-dark focus:border-transparent
+                transition-all duration-200"
+                placeholder="비밀번호를 입력하세요"
+                minLength={6}
                 required
               />
             </div>
-          </div>
-        </div>
-
-        {/* 캐릭터 이름 입력 */}
-        <div className="max-w-md mx-auto mb-8">
-          <input
-            type="text"
-            value={botName}
-            onChange={(e) => setBotName(e.target.value)}
-            className="text-sm text-center w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
-            placeholder="채팅봇 이름을 입력해주세요"
-          />
-        </div>
-
-        {/* 캐릭터 선택 */}
-        <div className="max-w-2xl mx-auto">
-          <h3 className="text-xl mb-4 text-center">캐릭터를 선택해주세요</h3>
-          <div className="grid grid-cols-4 gap-4">
-            {botImages.map((bot) => (
-              <div 
-                key={bot.id}
-                className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
-                  selectedBot === bot.id 
-                    ? 'border-custom-green-dark scale-105' 
-                    : 'border-transparent hover:border-custom-gray-dark'
-                }`}
-                onClick={() => setSelectedBot(bot.id)}
+            <div className="pt-2">
+              <button
+                type="submit"
+                className="w-full bg-custom-green-dark text-white py-3 px-6 rounded-xl
+                hover:bg-custom-green-light hover:text-black transition-all duration-200
+                transform hover:scale-[1.02] active:scale-[0.98] shadow-md"
               >
-                <Image
-                  src={bot.src}
-                  alt={bot.alt}
-                  width={150}
-                  height={150}
-                  className="w-full h-auto object-cover"
-                  priority
-                />
-              </div>
-            ))}
-          </div>
+                회원가입
+              </button>
+            </div>
+          </form>
         </div>
-
-        {/* 생성 버튼 */}
-        <button 
-          onClick={handleCreateCharacter}
-          disabled={!selectedBot || !botName.trim() || !email || !password}
-          className={`block mx-auto mt-8 px-6 py-3 rounded text-white transition-colors ${
-            selectedBot && botName.trim() && email && password
-              ? 'bg-custom-gray-dark hover:bg-custom-gray-light hover:text-black' 
-              : 'bg-gray-400 cursor-not-allowed'
-          }`}
-        >
-          캐릭터 생성
-        </button>
       </div>
     </div>
   );

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Header from "@/app/components/Header";
+import { usePathname } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: "Chat Application",
@@ -17,7 +19,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="font-chosungu antialiased">
-        {children}
+        <Header />
+        <main className="min-h-screen"> {/* pt-14 제거하고 min-h-screen 추가 */}
+          {children}
+        </main>
       </body>
     </html>
   );

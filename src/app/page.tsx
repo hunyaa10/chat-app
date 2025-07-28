@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 export default function Home() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [id, setId] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = (e: React.FormEvent) => {
@@ -15,25 +15,29 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-custom-gray-light p-4">
+    <div className="min-h-screen bg-custom-gray-light p-4 pt-8">
       <div className="max-w-md mx-auto">
         <h1 className="text-2xl font-bold text-center mb-2">Free Chat Bot</h1>
         <p className="text-center text-gray-600 mb-8">나만의 AI 챗봇을 만들어보세요</p>
-        <div className="bg-white p-8 rounded-2xl shadow-lg">
+        <div className="bg-white p-6 rounded-2xl shadow-lg">
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                이메일
+              <label htmlFor="id" className="block text-sm font-medium text-gray-700 mb-1">
+                아이디
               </label>
               <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                id="id"
+                value={id}
+                onChange={(e) => setId(e.target.value)}
                 className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm 
                 focus:outline-none focus:ring-2 focus:ring-custom-green-dark focus:border-transparent
                 transition-all duration-200"
-                placeholder="이메일을 입력하세요"
+                placeholder="아이디를 입력하세요"
+                minLength={4}
+                maxLength={20}
+                pattern="^[a-zA-Z0-9]+$"
+                title="영문과 숫자만 사용 가능합니다"
                 required
               />
             </div>
