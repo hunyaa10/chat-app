@@ -1,9 +1,10 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';  // useRef 추가
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { botImageMap, type BotId } from '@/config/botImages';
+import { generateChatResponse } from '@/lib/gemini';
 
 interface Message {
   id: number;
@@ -17,20 +18,34 @@ export default function Chat() {
   const searchParams = useSearchParams();
   const botId = searchParams.get('bot') as BotId;
   const botName = searchParams.get('name');
-  const messagesEndRef = useRef<HTMLDivElement>(null);  // 스크롤을 위한 ref 추가
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null); // 입력창 ref 추가
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   // 스크롤을 맨 아래로 이동시키는 함수
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // 입력창에 포커스를 주는 함수
+  const focusInput = () => {
+    inputRef.current?.focus();
+  };
+
   // 메시지가 추가될 때마다 스크롤 이동
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // 로딩이 끝나면 입력창에 포커스
+  useEffect(() => {
+    if (!isLoading) {
+      focusInput();
+    }
+  }, [isLoading]);
 
   useEffect(() => {
     if (!botId || !botName) {
@@ -41,37 +56,76 @@ export default function Chat() {
     setMessages([
       {
         id: 1,
-        text: `안녕하세요! 저는 ${botName}입니다. 무엇을 도와드릴까요?`,
+        text: `안녕하세요! 저는 ${botName}입니다.`,
         sender: 'bot',
         timestamp: new Date()
       }
     ]);
-  }, [botId, botName]);
+    // 초기 로드 시 입력창에 포커스
+    focusInput();
+  }, [botId, botName, router]);
 
-  const handleSendMessage = () => {
-    if (!inputMessage.trim()) return;
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || isLoading) return;
 
-    // 사용자 메시지 추가
-    const userMessage: Message = {
-      id: messages.length + 1,
-      text: inputMessage,
-      sender: 'user',
-      timestamp: new Date()
-    };
+    try {
+      setIsLoading(true);
+      
+      // 사용자 메시지 추가
+      const userMessage: Message = {
+        id: messages.length + 1,
+        text: inputMessage,
+        sender: 'user',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userMessage]);
+      setInputMessage('');
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
-
-    // 봇 응답 (예시)
-    setTimeout(() => {
-      const botMessage: Message = {
+      // 로딩 메시지 추가
+      const loadingMessage: Message = {
         id: messages.length + 2,
-        text: `${inputMessage}에 대해 말씀해 주셔서 감사합니다.`,
+        text: '답변을 생성하고 있습니다...',
         sender: 'bot',
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, botMessage]);
-    }, 1000);
+      setMessages(prev => [...prev, loadingMessage]);
+
+      // AI 응답 생성
+      const response = await generateChatResponse(inputMessage);
+      
+      // 로딩 메시지를 실제 응답으로 교체
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === loadingMessage.id
+            ? { ...msg, text: response }
+            : msg
+        )
+      );
+
+    } catch (error) {
+      console.error('채팅 응답 생성 중 오류:', error);
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
+      
+      // 로딩 메시지를 에러 메시지로 교체하거나 새로운 에러 메시지 추가
+      setMessages(prev => {
+        const loadingMessageIndex = prev.findIndex(msg => msg.text === '답변을 생성하고 있습니다...');
+        if (loadingMessageIndex !== -1) {
+          return prev.map((msg, index) => 
+            index === loadingMessageIndex
+              ? { ...msg, text: errorMessage }
+              : msg
+          );
+        }
+        return [...prev, {
+          id: messages.length + 2,
+          text: errorMessage,
+          sender: 'bot',
+          timestamp: new Date()
+        }];
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -127,7 +181,6 @@ export default function Chat() {
               </div>
             </div>
           ))}
-          {/* 스크롤을 위한 더미 div */}
           <div ref={messagesEndRef} />
         </div>
 
@@ -135,18 +188,25 @@ export default function Chat() {
         <div className="border-t p-4 bg-white">
           <div className="flex">
             <input
+              ref={inputRef}
               type="text"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
               placeholder="메시지를 입력하세요..."
               className="flex-1 px-4 py-2 border rounded-l focus:outline-none focus:ring-1 focus:ring-custom-green-dark"
+              disabled={isLoading}
             />
             <button
               onClick={handleSendMessage}
-              className="px-6 py-2 bg-custom-green-dark text-white rounded-r hover:bg-custom-green-light hover:text-black transition-colors"
+              disabled={isLoading}
+              className={`px-6 py-2 rounded-r transition-colors ${
+                isLoading 
+                  ? 'bg-gray-400 text-white cursor-not-allowed'
+                  : 'bg-custom-green-dark text-white hover:bg-custom-green-light hover:text-black'
+              }`}
             >
-              전송
+              {isLoading ? '응답 중...' : '전송'}
             </button>
           </div>
         </div>
