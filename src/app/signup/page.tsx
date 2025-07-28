@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { supabase } from '@/lib/superbase';
 
-export default function Home() {
+export default function SignUp() {
   const router = useRouter();
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
@@ -12,45 +12,57 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);  // 추가
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
     try {
-      const { data: user, error: userError } = await supabase
+      // 1. 아이디 중복 체크
+      const { data: existingUser, error: checkError } = await supabase
         .from('users')
-        .select('*')
+        .select('username')
         .eq('username', id)
         .single();
 
-      if (userError || !user) {
-        throw new Error('아이디 또는 비밀번호가 일치하지 않습니다.');
+      if (existingUser) {
+        throw new Error('이미 사용 중인 아이디입니다.');
       }
 
-      if (user.password !== password) {
-        throw new Error('아이디 또는 비밀번호가 일치하지 않습니다.');
+      // 2. 새 사용자 등록
+      const { data: newUser, error: insertError } = await supabase
+        .from('users')
+        .insert([
+          {
+            username: id,
+            password: password, // 실제로는 해시화된 비밀번호를 저장해야 합니다
+          }
+        ])
+        .select()
+        .single();
+
+      if (insertError) {
+        throw new Error('회원가입에 실패했습니다.');
       }
 
-      // 로그인 성공 시 사용자 ID를 로컬 스토리지에 저장
-      localStorage.setItem('userId', user.id);
-      
-      router.push('/mypage');
-      
+      // 3. 회원가입 성공
+      alert('회원가입이 완료되었습니다.');
+      router.push('/'); // 홈(로그인) 페이지로 이동
+
     } catch (err) {
-      setError(err instanceof Error ? err.message : '로그인에 실패했습니다.');
+      setError(err instanceof Error ? err.message : '회원가입에 실패했습니다.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-custom-gray-light p-4 pt-8">
-      <div className="max-w-md mx-auto">
-        <h1 className="text-2xl font-bold text-center mb-2">Free Chat Bot</h1>
-        <p className="text-center text-gray-600 mb-8">나만의 AI 챗봇을 만들어보세요</p>
-        <div className="bg-white p-6 rounded-2xl shadow-lg">
-          <form onSubmit={handleLogin} className="space-y-6">
+    <div className="min-h-screen bg-custom-gray-light">
+      <div className="max-w-md mx-auto p-4">
+        <h1 className="text-2xl font-bold text-center mb-8">회원가입</h1>
+        
+        <div className="bg-white p-4 rounded-2xl shadow-lg">
+          <form onSubmit={handleSignUp} className="space-y-6">
             {error && (
               <div className="text-red-500 text-sm text-center">
                 {error}
@@ -91,6 +103,7 @@ export default function Home() {
                   focus:outline-none focus:ring-2 focus:ring-custom-green-dark focus:border-transparent
                   transition-all duration-200"
                   placeholder="비밀번호를 입력하세요"
+                  minLength={6}
                   required
                   disabled={isLoading}
                 />
@@ -114,7 +127,7 @@ export default function Home() {
                 </button>
               </div>
             </div>
-            <div className="space-y-4 pt-2">
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={isLoading}
@@ -123,26 +136,18 @@ export default function Home() {
                 transform hover:scale-[1.02] active:scale-[0.98] shadow-md
                 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {isLoading ? '로그인 중...' : '로그인'}
+                {isLoading ? '가입 중...' : '회원가입'}
               </button>
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">또는</span>
-                </div>
-              </div>
               <button
                 type="button"
-                onClick={() => router.push('/signup')}
+                onClick={() => router.push('/')}
                 disabled={isLoading}
-                className="w-full bg-white text-custom-gray-dark py-3 px-6 rounded-xl
+                className="w-full mt-4 bg-white text-custom-gray-dark py-3 px-6 rounded-xl
                 border-2 border-custom-gray-dark hover:bg-custom-gray-dark hover:text-white
                 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
                 shadow-md"
               >
-                회원가입
+                돌아가기
               </button>
             </div>
           </form>
