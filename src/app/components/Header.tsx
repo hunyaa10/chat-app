@@ -2,10 +2,18 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // 로그인 상태 확인
+    const userId = localStorage.getItem('userId');
+    setIsLoggedIn(!!userId);
+  }, []);
 
   // 홈페이지에서는 헤더 자체를 숨김
   if (pathname === '/') {
@@ -25,6 +33,15 @@ export default function Header() {
         return '새 채팅봇 만들기';
       default:
         return '';
+    }
+  };
+
+  // 홈 버튼 클릭 핸들러
+  const handleHomeClick = () => {
+    if (isLoggedIn) {
+      router.push('/mypage');
+    } else {
+      router.push('/');
     }
   };
 
@@ -61,9 +78,9 @@ export default function Header() {
 
           {/* 오른쪽 - 홈 버튼 */}
           <button
-            onClick={() => router.push('/')}
+            onClick={handleHomeClick}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            aria-label="홈으로 가기"
+            aria-label={isLoggedIn ? "마이페이지로 가기" : "홈으로 가기"}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
